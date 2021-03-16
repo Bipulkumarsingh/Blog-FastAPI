@@ -49,7 +49,6 @@ lt=numeric_value (less than)
 12.
 In case of float validation use gt or lt only, In case of float FastAPI will validate any float but 0.0 or 0 is not
 valid float.
-
 """
 
 
