@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Path
 from typing import Optional, List
 from pydantic import BaseModel
 
@@ -23,7 +23,7 @@ we can also use regex to match pattern in query parameter.
 we can declare function with 'async def' or with normal 'def', FastAPI handle both.
 None is used to define it is optional query, we can use Ellipsis(...) with Query to make query parameter required.
 6.
-Metadata: metadata is extra information used by documentation UI or extranal tool
+Metadata: metadata for query parameter is extra information used by documentation UI or external tool
 title: used to add information about parameter.
 description: used to describe the use of parameter and other information.
 7.
@@ -31,7 +31,25 @@ Alias for query parameter: what if we want 'item-query' as query parameter but i
 In this case we can declare alias for any variable.
 8.
 Deprecating: Let suppose if we don't want some query parameter but You have to leave it there a while because 
-there are clients using it, but you want the docs to clearly show it as deprecated.   
+there are clients using it, but you want the docs to clearly show it as deprecated. \
+9. 
+we can keep path parameter using is using Path method because python will complain about you can put parameter with  
+default value before parameter without any default value, FastAPI will identify these with their name and declaration.
+10.
+If we really want to keep order of path parameter first with default value and then query parameter, Pass *, as the 
+first parameter of the function. 
+Python won't do anything with that *, but it will know that all the following parameters should be called as 
+keyword arguments (key-value pairs), also known as kwargs. Even if they don't have a default value.
+11.
+Number validation in path parameter, pass these in Path method:
+ge=numeric_value (ge means greater than equal to)
+gt=numeric_value (greater than)
+le=numeric_value (less than equal to)
+lt=numeric_value (less than)
+12.
+In case of float validation use gt or lt only, In case of float FastAPI will validate any float but 0.0 or 0 is not
+valid float.
+
 """
 
 
@@ -105,14 +123,15 @@ async def create_blog(req: Blog):
 
 
 @app.post('/blog/{user_id}')
-async def create_blog(user_id: int, req: Blog, published: Optional[bool] = False):
+async def create_blog(*, user_id: int = Path(..., title="user_id to get all blogs for this user.", ge=0, le=1000),
+                      req: Blog, published: Optional[bool] = False):
     return {'data': f'Blog is created with title {req.title} and user is {user_id} with publish status {published}'}
 
 
 @app.get('/blog/{id}')
-def show(id: int):
-    # Fetch blog with id = id
-    return {"data": id}
+def show(id: int = Path(..., title="The user_id for which blog belongs."),
+         size: float = Query(..., alias="item-size", gt=0, lt=10.5)):
+    return {"data": id, "extra_query_info": size}
 
 
 @app.get('/blog/unpublished')
